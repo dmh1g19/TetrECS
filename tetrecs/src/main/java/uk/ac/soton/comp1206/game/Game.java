@@ -45,7 +45,7 @@ public class Game {
 
     public IntegerProperty level(){return level;}
     public int getLevel(){return level().get();}
-    public void setLevel(int value){level.set(level.get()+value);}
+    public void setLevel(int value){level.set(value);}
 
     public IntegerProperty lives(){return lives;}
     public int getLives(){return lives().get();}
@@ -54,6 +54,7 @@ public class Game {
     public IntegerProperty multipliyer(){return multipliyer;}
     public int getMultipliyer(){return multipliyer().get();}
     public void setMultipliyer(int value){multipliyer.set(multipliyer.get()+value);}
+    public void resetMultipliyer(int value){multipliyer.set(value);}
 
     /**
      * Number of rows
@@ -131,13 +132,18 @@ public class Game {
 
     public void score(int numOfBlocks, int numOfLines) {
         //number of lines * number of grid blocks cleared * 10 * the current multiplier
-        //If no lines are cleared, no score is added
 
         int scoreUpdate = numOfLines*numOfBlocks*10*getMultipliyer();
 
-        logger.info("Score: {}", scoreUpdate);
+        if(scoreUpdate == 0) {
+            scoreUpdate = 1;
+        }
+        else {
+            setScore(scoreUpdate);
+            int lvlRound = (int) Math.floor((((double)getScore()/1000)*1000)/1000);
+            setLevel(lvlRound);
+        }
 
-        setScore(scoreUpdate);
     }
 
     public GamePiece spawnPiece() {
@@ -206,7 +212,7 @@ public class Game {
         //Update the grid with the new value
         if(grid.canPlayPiece(currentPiece, x, y) == true) {
             grid.playPiece(currentPiece, x, y);
-            grid.afterPiece(); //Check if lines need to be cleared
+            grid.afterPiece(this); //Check if lines need to be cleared
             nextPiece();
         }
     }
@@ -278,7 +284,7 @@ public class Game {
         //Place block when usser presses enter at currentX, currentY location
         if(grid.canPlayPiece(currentPiece, currentX, currentY) == true) {
             grid.playPiece(currentPiece, currentX, currentY);
-            grid.afterPiece(); //Check if lines need to be cleared
+            grid.afterPiece(this); //Check if lines need to be cleared
             nextPiece();
         }
     }

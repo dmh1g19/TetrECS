@@ -43,7 +43,7 @@ public class ChallengeScene extends BaseScene {
     public ChallengeScene(GameWindow gameWindow) {
         super(gameWindow);
         logger.info("Creating Menu Scene");
-        Multimedia.playBackgroundMusic("game.wav");
+        //Multimedia.playBackgroundMusic("game.wav");
     }
 
     /**
@@ -90,7 +90,14 @@ public class ChallengeScene extends BaseScene {
         livesText.setTextAlignment(TextAlignment.CENTER);
         livesText.textProperty().bind(game.lives().asString());
 
-        info.getChildren().addAll(scoreLabel, scoreText,livesLabel, livesText, levelLabel, levelText);
+        var multipliyerLabel = new Text("Multiplier");
+        multipliyerLabel.getStyleClass().add("heading");
+        var multipliyerText = new Text();
+        multipliyerText.getStyleClass().add("lives");
+        multipliyerText.setTextAlignment(TextAlignment.CENTER);
+        multipliyerText.textProperty().bind(game.multipliyer().asString());
+
+        info.getChildren().addAll(multipliyerLabel, multipliyerText, scoreLabel, scoreText,livesLabel, livesText, levelLabel, levelText);
 
         /// Mini game piece view grid ///
         var pieceGridLabel = new Text("Incoming");

@@ -4,6 +4,8 @@ import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import uk.ac.soton.comp1206.event.Multimedia;
 
+import java.util.ArrayList;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -21,9 +23,6 @@ import org.apache.logging.log4j.Logger;
 public class Grid {
 
     private static final Logger logger = LogManager.getLogger(Grid.class);
-
-    int numOfLines = 0;
-    int numOfBlocks = 0;
 
     /**
      * The number of columns in this grid
@@ -146,57 +145,74 @@ public class Grid {
         Multimedia.playSounds("place.wav");
     }
 
-    public void afterPiece() {
-        //This is very bad im sorry! :<
-        //TODO: IMPLEMENT LINE CLEARING AND SCORES CORRECTLY
+    public void afterPiece(Game gm) {
 
-        Game gm = new Game(0, 0);
+        ArrayList<Integer> x = new ArrayList<Integer>();
+        ArrayList<Integer> y = new ArrayList<Integer>();
 
-        //Remove horizontal lines
-        for(int t=0;t<getCols();t++) {
-            int counter = 0;
-            for (int i=0;i<getCols();i++) {
-                if(get(i, t) > 0) {
-                    counter++;
-                    if(counter == getCols()) {
-                        logger.info("Line found!");
-
-                        numOfLines++; //increase lines cleared count
-                        for(int p=0;p<getCols();p++) {
-                            set(p, t, 0);
-                            numOfBlocks++; //count blocks cleared
-                        }
+        //Find horizontal lines
+        for(int columns=0;columns<getCols();columns++) {
+            int blockOccupied = 0;
+            for(int rows=0;rows<getRows();rows++) {
+                if(get(rows, columns) > 0) {
+                    blockOccupied++;
+                    if(blockOccupied == getCols()) {
                         Multimedia.playSounds("clear.wav");
+                        //Add to array for clearing
+                        for(int i=0;i<getCols();i++) {
+                            //set(i,columns,0);
+                            x.add(i);
+                            y.add(columns);
+                        }
                         break;
                     }
                 }
             }
-
-            gm.score(numOfBlocks, numOfLines);
-            //gm.setMultipliyer(numOfLines);
         }
-
-        //Remove vertical lines
-        for(int t=0;t<getRows();t++) {
-            int counter = 0;
-            for (int i=0;i<getRows();i++) {
-                if(get(t, i) > 0) {
-                    counter++;
-                    if(counter == getRows()) {
-                        logger.info("Line found!");
-                        for(int p=0;p<getRows();p++) {
-                            set(t, p, 0);
-                        }
+        //Find vertical lines
+        for(int columns=0;columns<getCols();columns++) {
+            int blockOccupied = 0;
+            for(int rows=0;rows<getRows();rows++) {
+                if(get(columns, rows) > 0) {
+                    blockOccupied++;
+                    if(blockOccupied == getCols()) {
                         Multimedia.playSounds("clear.wav");
+                        //Add to array for clearing
+                        for(int i=0;i<getCols();i++) {                               
+                            x.add(columns);
+                            y.add(i);
+                        }
                         break;
                     }
                 }
             }
         }
 
-        //logger.info("Current multipliyer:{}", gm.getMultipliyer());
-        //logger.info("Num of lines cleared:{}", numOfLines);
-        //logger.info("Total blocks cleared:{}", numOfBlocks);
+        //Change lines to empty on the grid
+        for(int i=0;i<x.size();i++) {
+            set(x.get(i),y.get(i),0);
+        }
+
+        if(!(x.isEmpty())) {
+            gm.setMultipliyer(1);
+        }
+        else if(x.isEmpty()) {
+            gm.resetMultipliyer(1);
+        }
+
+        int numOfLines = x.size()/5;
+        int numOfBlocks = x.size();
+       
+        gm.score(numOfBlocks, numOfLines);
+        //gm.setMultipliyer(numOfLines);
+
+        logger.info("Current level:{}", gm.getLevel());
+        logger.info("Num of lines cleared:{}", numOfLines);
+        logger.info("Total blocks cleared:{}", numOfBlocks);
+        logger.info("Current multipliyer:{}", gm.getMultipliyer());
+        logger.info("Current score:{}", gm.getScore());
+
+        x.removeAll(x);
+        y.removeAll(y);
     }
-
 }
