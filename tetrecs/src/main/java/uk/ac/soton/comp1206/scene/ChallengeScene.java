@@ -1,6 +1,10 @@
 package uk.ac.soton.comp1206.scene;
 
+import javafx.animation.KeyFrame;
+import javafx.animation.KeyValue;
+import javafx.animation.Timeline;
 import javafx.application.Platform;
+import javafx.beans.property.ListProperty;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -9,8 +13,18 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
+import javafx.util.Duration;
+import javafx.util.Pair;
+
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Comparator;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -32,9 +46,48 @@ public class ChallengeScene extends BaseScene {
     private static final Logger logger = LogManager.getLogger(MenuScene.class);
     protected Game game;
 
-    int DIncrease = 0;
-    int SIncrease = 0;
-    int ADecrease = 0;
+    Timeline timeline;
+    Rectangle bar;
+
+    public int getHighScore() throws NumberFormatException, IOException {
+        String fileName = Multimedia.getScore("scores.txt");
+        FileReader fileReader = new FileReader(fileName.substring(5));
+
+        ArrayList<Pair<String, Integer>> highScores = new ArrayList<>();
+
+        try (BufferedReader bufferedReader = new BufferedReader(fileReader)) {
+            String line;
+            while((line=bufferedReader.readLine()) != null) {
+                String nameScore[] = line.split(":"); 
+                String name = nameScore[0]; 
+                String score = nameScore[1];
+                Pair<String, Integer> scorePair = new Pair<>(name, Integer.parseInt(score));
+                highScores.add(scorePair);
+            }
+        }
+
+        sortScores(highScores);
+
+        return highScores.get(0).getValue();
+    
+    }
+
+    public void sortScores(ArrayList<Pair<String,Integer>> scoreList) {
+        scoreList.sort(new Comparator<Pair<String, Integer>>() {
+            @Override
+            public int compare(Pair<String, Integer> o1, Pair<String, Integer> o2) {
+                if (o1.getValue() > o2.getValue()) {
+                    return -1;
+                }
+                else if (o1.getValue().equals(o2.getValue())) {
+                    return 0; 
+                }
+                else {
+                    return 1;
+                }
+            }
+        });
+    }
 
     /**
      * Create a new Single Player challenge scene
@@ -42,8 +95,8 @@ public class ChallengeScene extends BaseScene {
      */
     public ChallengeScene(GameWindow gameWindow) {
         super(gameWindow);
-        logger.info("Creating Menu Scene");
-        //Multimedia.playBackgroundMusic("game.wav");
+        logger.info("Creating Challenge Scene");
+        Multimedia.playBackgroundMusic("game.wav");
     }
 
     /**
@@ -53,6 +106,14 @@ public class ChallengeScene extends BaseScene {
     public void build() {
 
         logger.info("Building " + this.getClass().getName());
+
+        //try {
+        //    System.out.println("Current highscore: " + getHighScore());
+        //} catch (NumberFormatException e1) {
+        //    e1.printStackTrace();
+        //} catch (IOException e1) {
+        //    e1.printStackTrace();
+        //}
 
         setupGame();
 
@@ -97,7 +158,27 @@ public class ChallengeScene extends BaseScene {
         multipliyerText.setTextAlignment(TextAlignment.CENTER);
         multipliyerText.textProperty().bind(game.multipliyer().asString());
 
-        info.getChildren().addAll(multipliyerLabel, multipliyerText, scoreLabel, scoreText,livesLabel, livesText, levelLabel, levelText);
+        var highScoreLabel = new Text("Current High Score");
+        highScoreLabel.getStyleClass().add("heading");
+        var highScoreText = new Text();
+        highScoreText.getStyleClass().add("lives");
+        highScoreText.setTextAlignment(TextAlignment.CENTER);
+
+        try {
+            if(getHighScore() > game.getScore()) {
+                highScoreText.setText(String.valueOf(getHighScore()));
+            }
+            else {
+                highScoreText.textProperty().bind(game.score().asString());
+            }
+        } catch (NumberFormatException e1) {
+            e1.printStackTrace();
+        } catch (IOException e1) {
+            e1.printStackTrace();
+        }
+
+
+        info.getChildren().addAll(multipliyerLabel, multipliyerText, scoreLabel, scoreText,livesLabel, livesText, levelLabel, levelText, highScoreLabel, highScoreText);
 
         /// Mini game piece view grid ///
         var pieceGridLabel = new Text("Incoming");
@@ -120,11 +201,25 @@ public class ChallengeScene extends BaseScene {
         title.getStyleClass().add("title");
         titleContainer.getChildren().add(title);
 
+        var timerBarSection = new HBox();
+        timerBarSection.setAlignment(Pos.BOTTOM_CENTER);
+        timerBarSection.setPadding(new Insets(5, 5, 5, 5));
+        bar = new Rectangle(0, 0, gameWindow.getWidth()-15, 20);
+        bar.setFill(Color.RED);
+        timerBarSection.getChildren().add(bar);
+
+        KeyValue widthValue = new KeyValue(bar.widthProperty(), 0);
+        KeyFrame frame = new KeyFrame(Duration.millis(game.getTimerDelay()), widthValue);
+        timeline = new Timeline(frame);
+        timeline.setCycleCount(Timeline.INDEFINITE);
+        timeline.play();
+
         var mainPane = new BorderPane();
         challengePane.getChildren().add(mainPane);
         mainPane.setRight(info); //add info section
         mainPane.setLeft(pieceView); //add current piece view grid
         mainPane.setTop(titleContainer);
+        mainPane.setBottom(timerBarSection);
 
 
         var board = new GameBoard(game.getGrid(),gameWindow.getWidth()/2,gameWindow.getWidth()/2);
@@ -133,10 +228,17 @@ public class ChallengeScene extends BaseScene {
         //Handle block on gameboard grid being clicked
         board.setOnBlockClick(this::blockClicked);
 
+        //Listener so scene knows when game has ended
+        game.setOnGameOver(() -> {
+            Platform.runLater(() -> {
+                timeline.stop();
+                gameWindow.startScores();
+            });
+        });
+
         //Listener to rotate
         game.addListener2((pieceToRotate) -> {
             Platform.runLater(() -> {
-                //logger.info("Listener piece: {}", piece);
                 pbSmall.addPieceToGrid(pieceToRotate);
             });
         });
@@ -144,7 +246,6 @@ public class ChallengeScene extends BaseScene {
         //Listener to add game piece to 3x3 grids
         game.addListener((piece, piece2) -> {
             Platform.runLater(() -> {
-                //logger.info("Listener piece: {}", piece);
                 pb.addPieceToGrid(piece);
                 pbSmall.addPieceToGrid(piece2);
             });
@@ -155,8 +256,14 @@ public class ChallengeScene extends BaseScene {
             {
                 game.rotateCurrentPiece();
             }
-            else {
-                //Do nothing
+            else if (e.getButton() == MouseButton.PRIMARY)
+            {
+                if(game.temp) {
+                    timeline.stop();
+                    bar.setWidth(gameWindow.getWidth()-15);
+                    timeline.play();
+                    System.out.println("Challenge: "+game.getTimerDelay());
+                }
             }
         });
 
@@ -165,9 +272,6 @@ public class ChallengeScene extends BaseScene {
             {
                 game.swapCurrentPiece();
             }
-            else {
-                //Do nothing
-            }
         });
 
         pbSmall.setOnMouseClicked(e -> {
@@ -175,10 +279,11 @@ public class ChallengeScene extends BaseScene {
             {
                 game.rotateCurrentPiece();
             }
-            else {
-                //Do nothing
-            }
         });
+    }
+
+    public void startScoresScene() {
+        gameWindow.startScores();
     }
 
     /**
@@ -196,7 +301,7 @@ public class ChallengeScene extends BaseScene {
         logger.info("Starting a new challenge");
 
         //Start new game
-        game = new Game(7, 7);
+        game = new Game(5, 5);
     }
 
     /**
@@ -226,7 +331,15 @@ public class ChallengeScene extends BaseScene {
             }
             if (e.getCode() == KeyCode.ENTER
                 || e.getCode() == KeyCode.X) {
+
                 game.keyboardControlsEnter();
+
+                if(game.temp) {
+                    timeline.stop();
+                    bar.setWidth(gameWindow.getWidth()-15);
+                    timeline.play();
+                    System.out.println("Challenge: "+game.getTimerDelay());
+                }
             }
             if (e.getCode() == KeyCode.ESCAPE) {
                 Multimedia.stopBackgroundMusic();

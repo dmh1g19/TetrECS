@@ -118,11 +118,14 @@
 }
 
 .scoreitem {
-
+    -fx-border-color: white;
+    -fx-background-color: rgba(21,44,85,0.51);
 }
 
 .scorer {
-
+    -fx-font-family: 'Orbitron';
+    -fx-font-size: 16px;
+    -fx-fill: blue;
 }
 
 .myscore {
@@ -134,6 +137,9 @@
 }
 
 .points {
+    -fx-font-family: 'Orbitron';
+    -fx-font-size: 16px;
+    -fx-fill: red;
 }
 
 .channelList {

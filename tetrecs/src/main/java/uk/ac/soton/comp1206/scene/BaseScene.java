@@ -10,7 +10,7 @@ import uk.ac.soton.comp1206.ui.GameWindow;
  */
 public abstract class BaseScene {
 
-    protected final GameWindow gameWindow;
+    public final GameWindow gameWindow;
 
     protected GamePane root;
     protected Scene scene;
@@ -52,5 +52,4 @@ public abstract class BaseScene {
     public Scene getScene() {
         return this.scene;
     }
-
 }

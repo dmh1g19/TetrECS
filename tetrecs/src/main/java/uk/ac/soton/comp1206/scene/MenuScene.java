@@ -95,6 +95,10 @@ public class MenuScene extends BaseScene {
         var startButton = new Text("Play");
         startButton.getStyleClass().add("menuItem");
 
+        //Scores button
+        var scoreButton = new Text("Scores");
+        scoreButton.getStyleClass().add("menuItem");
+
         //Instructions button
         var instructionsButton = new Text("Instructions");
         instructionsButton.getStyleClass().add("menuItem");
@@ -105,7 +109,7 @@ public class MenuScene extends BaseScene {
         exitButton.getStyleClass().add("menuItem");
         mainPane.setBottom(exitButton);
 
-        buttons.getChildren().addAll(startButton, instructionsButton, exitButton);
+        buttons.getChildren().addAll(startButton, instructionsButton, scoreButton, exitButton);
         mainPane.setCenter(buttons);
 
         startButton.setOnMouseClicked(e -> {
@@ -115,6 +119,10 @@ public class MenuScene extends BaseScene {
 
         instructionsButton.setOnMouseClicked(e -> {
             gameWindow.startInstructions();
+        });
+
+        scoreButton.setOnMouseClicked(e -> {
+            gameWindow.startScores();
         });
 
         exitButton.setOnMouseClicked(e -> {

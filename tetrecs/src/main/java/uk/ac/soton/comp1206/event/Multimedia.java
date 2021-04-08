@@ -21,12 +21,25 @@ public class Multimedia {
     static String musicFolder = "music/";
     static String soundFolder = "sounds/";
     static String imageFolder = "images/";
+    public static String scoresFolder = "scores/";
     static boolean audioEnabled = true;
 
     public static String getImage(String file) {
         String imageName = Multimedia.class.getResource("/"+imageFolder+file).toExternalForm();
 
         return imageName;
+    }
+
+    public static String getScore(String file) {
+        String scoreFile = Multimedia.class.getResource("/"+scoresFolder+file).toExternalForm();
+
+        return scoreFile;
+    }
+
+    public static String getScoreFolder() {
+        String scoreFolder = Multimedia.class.getResource("/"+scoresFolder).toExternalForm();
+
+        return scoreFolder;
     }
 
     public static void playSounds(String file) {

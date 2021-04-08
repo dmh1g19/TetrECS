@@ -3,17 +3,23 @@ package uk.ac.soton.comp1206.game;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import uk.ac.soton.comp1206.component.GameBlock;
-import uk.ac.soton.comp1206.component.GameBoard;
 import uk.ac.soton.comp1206.event.Multimedia;
 import uk.ac.soton.comp1206.event.NextPieceListener;
+import uk.ac.soton.comp1206.event.gameOverListener;
 import uk.ac.soton.comp1206.event.rotatePieceListener;
+import uk.ac.soton.comp1206.scene.ChallengeScene;
+import uk.ac.soton.comp1206.ui.GameWindow;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.Timer;
+import java.util.TimerTask;
+
 import javafx.beans.*;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 
 /**
@@ -24,6 +30,7 @@ public class Game {
   
     private List<NextPieceListener> listeners = new ArrayList<NextPieceListener>();
     private List<rotatePieceListener> listeners2 = new ArrayList<rotatePieceListener>();
+    private List<gameOverListener> listenerGameover = new ArrayList<gameOverListener>();
 
     private static final Logger logger = LogManager.getLogger(Game.class);
 
@@ -31,6 +38,8 @@ public class Game {
 
     GamePiece currentPiece;
     GamePiece followingPiece = GamePiece.createPiece(5);
+
+    public boolean temp = false;
 
     Multimedia sound = new Multimedia();
 
@@ -49,7 +58,7 @@ public class Game {
 
     public IntegerProperty lives(){return lives;}
     public int getLives(){return lives().get();}
-    public void setLives(int value){lives.set(lives.get()+value);}
+    public void setLives(int value){lives.set(lives.get()-value);}
 
     public IntegerProperty multipliyer(){return multipliyer;}
     public int getMultipliyer(){return multipliyer().get();}
@@ -84,6 +93,37 @@ public class Game {
         this.grid = new Grid(cols,rows);
     }
 
+    public int delay;
+    public int getTimerDelay() {
+        delay = Math.max(2500, 12000-500*getLevel());
+
+        return delay;
+    }
+
+    Timer timer = new Timer();
+
+    public void gameLoop() {
+
+        if(getLives() == 3) {
+            Multimedia.stopBackgroundMusic();
+            Multimedia.playSounds("explode.wav");
+            timer.cancel();
+            receiveGameover();
+        }
+
+        resetMultipliyer(1);
+        sound.playSounds("lifelose.wav");
+        setLives(1);
+        nextPiece();
+    }
+
+    TimerTask task = new TimerTask(){
+        @Override
+        public void run() {
+            gameLoop();
+        }
+    };
+
     public void rotateCurrentPiece() {
         logger.info("Piece: {} rotated.", currentPiece.getValue());
 
@@ -99,10 +139,21 @@ public class Game {
         sound.playSounds("rotate.wav");
 
         currentPiece.rotateLeft();
-        receive2(currentPiece); //feed listener generated new roatetd piece in 3x3 view
+        receive2(currentPiece); 
     }
 
-    /// Listener code - update 3x3 grids ///
+    //Listener for end of game
+    public void setOnGameOver(gameOverListener listener) {
+        this.listenerGameover.add(listener);
+    }
+
+    private void receiveGameover() {
+        for(gameOverListener listener : listenerGameover) {
+            listener.gameOver();
+        }
+    }
+
+    // Listener code for updating 3x3 piece boards
     public void addListener(NextPieceListener listener) {
         this.listeners.add(listener);
     }
@@ -114,9 +165,8 @@ public class Game {
             listener.nextPiece(piece, piece2);
         }
     }
-    /// --- ///
 
-    /// Listener code - rotate ///
+    // Listener code for rotating piece
     public void addListener2(rotatePieceListener listener) {
         this.listeners2.add(listener);
     }
@@ -128,7 +178,6 @@ public class Game {
             listener.nextPiece(pieceToRotate);
         }
     }
-    /// --- ///
 
     public void score(int numOfBlocks, int numOfLines) {
         //number of lines * number of grid blocks cleared * 10 * the current multiplier
@@ -141,6 +190,7 @@ public class Game {
         else {
             setScore(scoreUpdate);
             int lvlRound = (int) Math.floor((((double)getScore()/1000)*1000)/1000);
+            sound.playSounds("level.wav");
             setLevel(lvlRound);
         }
 
@@ -158,13 +208,11 @@ public class Game {
     }
 
     public void nextPiece() {
-        //currentPiece = spawnPiece();
         logger.info("Current piece: {}", currentPiece);
         logger.info("Following piece: {}", followingPiece);
 
         currentPiece = followingPiece;
         followingPiece = spawnPiece();
-
     }
 
     public void swapCurrentPiece() {
@@ -191,6 +239,10 @@ public class Game {
      * Initialise a new game and set up anything that needs to be done at the start
      */
     public void initialiseGame() {
+        //Start the timer
+        timer = new Timer();
+        timer.scheduleAtFixedRate(task, getTimerDelay(), getTimerDelay());
+
         currentPiece = spawnPiece();
         followingPiece = spawnPiece();
         receive2(currentPiece);
@@ -209,11 +261,27 @@ public class Game {
         int x = gameBlock.getX();
         int y = gameBlock.getY();
 
-        //Update the grid with the new value
         if(grid.canPlayPiece(currentPiece, x, y) == true) {
+            temp = true;
+            //Reset timer
+            logger.info("Timer reset!");
+            timer.cancel();
+            timer = new Timer();
+            TimerTask task = new TimerTask(){
+                public void run() {
+                    gameLoop();
+                }
+            };
+            timer.scheduleAtFixedRate(task, getTimerDelay(), getTimerDelay());
+            System.out.println("Game: "+getTimerDelay());
+
+            //Update piece on grid
             grid.playPiece(currentPiece, x, y);
             grid.afterPiece(this); //Check if lines need to be cleared
             nextPiece();
+        }
+        else {
+            temp = false;
         }
     }
 
@@ -229,7 +297,7 @@ public class Game {
     }
 
     public void keyboardControlsD() {
-        if(currentX <= 5) {
+        if(currentX <= getCols()-2) {
             currentX++;
             if(grid.get(currentX, currentY) <= 0) {
                 grid.set(currentX, currentY, 16);
@@ -241,8 +309,9 @@ public class Game {
             }
         }
     }
+
     public void keyboardControlsS() {
-        if(currentY <= 5) {
+        if(currentY <= getRows()-2) {
             currentY++;
             if(grid.get(currentX, currentY) <= 0) {
                 grid.set(currentX, currentY, 16);
@@ -283,6 +352,18 @@ public class Game {
     public void keyboardControlsEnter() {
         //Place block when usser presses enter at currentX, currentY location
         if(grid.canPlayPiece(currentPiece, currentX, currentY) == true) {
+            temp = true;
+            //Reset timer
+            logger.info("Timer reset!");
+            timer.cancel();
+            timer = new Timer();
+            TimerTask task = new TimerTask(){
+                public void run() {
+                    gameLoop();
+                }
+            };
+            timer.scheduleAtFixedRate(task, getTimerDelay(), getTimerDelay());
+
             grid.playPiece(currentPiece, currentX, currentY);
             grid.afterPiece(this); //Check if lines need to be cleared
             nextPiece();
