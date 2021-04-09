@@ -123,9 +123,9 @@
 }
 
 .scorer {
-    -fx-font-family: 'Orbitron';
-    -fx-font-size: 16px;
-    -fx-fill: blue;
+    -fx-font-family: 'Orbitron-bold';
+    -fx-font-size: 25px;
+    -fx-fill: rgb(255, 255, 255);
 }
 
 .myscore {
@@ -138,7 +138,7 @@
 
 .points {
     -fx-font-family: 'Orbitron';
-    -fx-font-size: 16px;
+    -fx-font-size: 20px;
     -fx-fill: red;
 }
 

@@ -1,5 +1,6 @@
 package uk.ac.soton.comp1206.scene;
 
+import javafx.animation.FillTransition;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
@@ -48,46 +49,9 @@ public class ChallengeScene extends BaseScene {
 
     Timeline timeline;
     Rectangle bar;
-
-    public int getHighScore() throws NumberFormatException, IOException {
-        String fileName = Multimedia.getScore("scores.txt");
-        FileReader fileReader = new FileReader(fileName.substring(5));
-
-        ArrayList<Pair<String, Integer>> highScores = new ArrayList<>();
-
-        try (BufferedReader bufferedReader = new BufferedReader(fileReader)) {
-            String line;
-            while((line=bufferedReader.readLine()) != null) {
-                String nameScore[] = line.split(":"); 
-                String name = nameScore[0]; 
-                String score = nameScore[1];
-                Pair<String, Integer> scorePair = new Pair<>(name, Integer.parseInt(score));
-                highScores.add(scorePair);
-            }
-        }
-
-        sortScores(highScores);
-
-        return highScores.get(0).getValue();
-    
-    }
-
-    public void sortScores(ArrayList<Pair<String,Integer>> scoreList) {
-        scoreList.sort(new Comparator<Pair<String, Integer>>() {
-            @Override
-            public int compare(Pair<String, Integer> o1, Pair<String, Integer> o2) {
-                if (o1.getValue() > o2.getValue()) {
-                    return -1;
-                }
-                else if (o1.getValue().equals(o2.getValue())) {
-                    return 0; 
-                }
-                else {
-                    return 1;
-                }
-            }
-        });
-    }
+    KeyFrame frame;
+    KeyValue widthValue;
+    FillTransition ft;
 
     /**
      * Create a new Single Player challenge scene
@@ -96,7 +60,7 @@ public class ChallengeScene extends BaseScene {
     public ChallengeScene(GameWindow gameWindow) {
         super(gameWindow);
         logger.info("Creating Challenge Scene");
-        Multimedia.playBackgroundMusic("game.wav");
+        //Multimedia.playBackgroundMusic("game.wav");
     }
 
     /**
@@ -106,14 +70,6 @@ public class ChallengeScene extends BaseScene {
     public void build() {
 
         logger.info("Building " + this.getClass().getName());
-
-        //try {
-        //    System.out.println("Current highscore: " + getHighScore());
-        //} catch (NumberFormatException e1) {
-        //    e1.printStackTrace();
-        //} catch (IOException e1) {
-        //    e1.printStackTrace();
-        //}
 
         setupGame();
 
@@ -163,22 +119,13 @@ public class ChallengeScene extends BaseScene {
         var highScoreText = new Text();
         highScoreText.getStyleClass().add("lives");
         highScoreText.setTextAlignment(TextAlignment.CENTER);
-
         try {
-            if(getHighScore() > game.getScore()) {
-                highScoreText.setText(String.valueOf(getHighScore()));
-            }
-            else {
-                highScoreText.textProperty().bind(game.score().asString());
-            }
-        } catch (NumberFormatException e1) {
-            e1.printStackTrace();
-        } catch (IOException e1) {
+            highScoreText.setText(String.valueOf(game.getHighScore()));
+        } catch (NumberFormatException | IOException e1) {
             e1.printStackTrace();
         }
 
-
-        info.getChildren().addAll(multipliyerLabel, multipliyerText, scoreLabel, scoreText,livesLabel, livesText, levelLabel, levelText, highScoreLabel, highScoreText);
+        info.getChildren().addAll(multipliyerLabel, multipliyerText, scoreLabel, scoreText, livesLabel, livesText, levelLabel, levelText, highScoreLabel, highScoreText);
 
         /// Mini game piece view grid ///
         var pieceGridLabel = new Text("Incoming");
@@ -193,7 +140,6 @@ public class ChallengeScene extends BaseScene {
         pieceView.setSpacing(5);
         pieceView.getChildren().addAll(pieceGridLabel, pbSmall, pb);
 
-
         var titleContainer = new HBox();
         titleContainer.setAlignment(Pos.TOP_CENTER);
         titleContainer.setPadding(new Insets(25, 5, 5, 70));
@@ -202,17 +148,11 @@ public class ChallengeScene extends BaseScene {
         titleContainer.getChildren().add(title);
 
         var timerBarSection = new HBox();
-        timerBarSection.setAlignment(Pos.BOTTOM_CENTER);
+        timerBarSection.setAlignment(Pos.BOTTOM_LEFT);
         timerBarSection.setPadding(new Insets(5, 5, 5, 5));
-        bar = new Rectangle(0, 0, gameWindow.getWidth()-15, 20);
+        bar = new Rectangle(0, 0, gameWindow.getWidth(), 20);
         bar.setFill(Color.RED);
         timerBarSection.getChildren().add(bar);
-
-        KeyValue widthValue = new KeyValue(bar.widthProperty(), 0);
-        KeyFrame frame = new KeyFrame(Duration.millis(game.getTimerDelay()), widthValue);
-        timeline = new Timeline(frame);
-        timeline.setCycleCount(Timeline.INDEFINITE);
-        timeline.play();
 
         var mainPane = new BorderPane();
         challengePane.getChildren().add(mainPane);
@@ -221,12 +161,34 @@ public class ChallengeScene extends BaseScene {
         mainPane.setTop(titleContainer);
         mainPane.setBottom(timerBarSection);
 
-
         var board = new GameBoard(game.getGrid(),gameWindow.getWidth()/2,gameWindow.getWidth()/2);
         mainPane.setCenter(board);
 
         //Handle block on gameboard grid being clicked
         board.setOnBlockClick(this::blockClicked);
+
+        //Listener for updating delay on progress bar
+        game.setOnDelayChange((delay) -> {
+            Platform.runLater(() -> {
+                widthValue = new KeyValue(bar.widthProperty(), 0); //TODO: might need global scope
+                logger.info("Current delay: {}", delay);
+                frame = new KeyFrame(Duration.millis(delay), widthValue);
+                timeline = new Timeline(frame);
+                timeline.setCycleCount(Timeline.INDEFINITE);
+                timeline.play();
+
+                ft = new FillTransition(Duration.millis(delay), bar, Color.GREEN, Color.RED);
+                ft.setCycleCount(Timeline.INDEFINITE);
+                ft.play();
+            });
+        });
+
+        //Listener for updating highscore during game if player beats it
+        game.setOnHighScore(() -> {
+            Platform.runLater(() -> {
+                highScoreText.textProperty().bind(game.score().asString());
+            });
+        });
 
         //Listener so scene knows when game has ended
         game.setOnGameOver(() -> {
@@ -250,7 +212,6 @@ public class ChallengeScene extends BaseScene {
                 pbSmall.addPieceToGrid(piece2);
             });
         });
-
         board.setOnMouseClicked(e -> {
             if (e.getButton() == MouseButton.SECONDARY)
             {
@@ -260,9 +221,8 @@ public class ChallengeScene extends BaseScene {
             {
                 if(game.temp) {
                     timeline.stop();
-                    bar.setWidth(gameWindow.getWidth()-15);
+                    bar.setWidth(gameWindow.getWidth());
                     timeline.play();
-                    System.out.println("Challenge: "+game.getTimerDelay());
                 }
             }
         });
@@ -336,9 +296,8 @@ public class ChallengeScene extends BaseScene {
 
                 if(game.temp) {
                     timeline.stop();
-                    bar.setWidth(gameWindow.getWidth()-15);
+                    bar.setWidth(gameWindow.getWidth());
                     timeline.play();
-                    System.out.println("Challenge: "+game.getTimerDelay());
                 }
             }
             if (e.getCode() == KeyCode.ESCAPE) {

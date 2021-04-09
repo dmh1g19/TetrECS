@@ -5,12 +5,18 @@ import org.apache.logging.log4j.Logger;
 import uk.ac.soton.comp1206.component.GameBlock;
 import uk.ac.soton.comp1206.event.Multimedia;
 import uk.ac.soton.comp1206.event.NextPieceListener;
+import uk.ac.soton.comp1206.event.delayChangeListener;
 import uk.ac.soton.comp1206.event.gameOverListener;
+import uk.ac.soton.comp1206.event.highScoreListener;
 import uk.ac.soton.comp1206.event.rotatePieceListener;
 import uk.ac.soton.comp1206.scene.ChallengeScene;
 import uk.ac.soton.comp1206.ui.GameWindow;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
 import java.util.Timer;
@@ -21,6 +27,7 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
+import javafx.util.Pair;
 
 /**
  * The Game class handles the main logic, state and properties of the TetrECS game. Methods to manipulate the game state
@@ -31,6 +38,8 @@ public class Game {
     private List<NextPieceListener> listeners = new ArrayList<NextPieceListener>();
     private List<rotatePieceListener> listeners2 = new ArrayList<rotatePieceListener>();
     private List<gameOverListener> listenerGameover = new ArrayList<gameOverListener>();
+    private List<highScoreListener> listenerHighScore = new ArrayList<highScoreListener>();
+    private List<delayChangeListener> listenerDelayChange = new ArrayList<delayChangeListener>();
 
     private static final Logger logger = LogManager.getLogger(Game.class);
 
@@ -46,7 +55,7 @@ public class Game {
     private static IntegerProperty score = new SimpleIntegerProperty(0);
     private static IntegerProperty level = new SimpleIntegerProperty(0);
     private static IntegerProperty lives = new SimpleIntegerProperty(3);
-    private static IntegerProperty multipliyer = new SimpleIntegerProperty(1);
+    private static IntegerProperty multipliyer = new SimpleIntegerProperty(0);
 
     public IntegerProperty score(){return score;}
     public int getScore(){return score().get();}
@@ -93,18 +102,58 @@ public class Game {
         this.grid = new Grid(cols,rows);
     }
 
-    public int delay;
     public int getTimerDelay() {
-        delay = Math.max(2500, 12000-500*getLevel());
+        int delay = Math.max(2500, 12000-500*getLevel());
+        receiveDelay(delay);
 
         return delay;
     }
 
     Timer timer = new Timer();
 
+    public int getHighScore() throws NumberFormatException, IOException {
+        String fileName = Multimedia.getScore("scores.txt");
+        FileReader fileReader = new FileReader(fileName.substring(5));
+
+        ArrayList<Pair<String, Integer>> highScores = new ArrayList<>();
+
+        try (BufferedReader bufferedReader = new BufferedReader(fileReader)) {
+            String line;
+            while((line=bufferedReader.readLine()) != null) {
+                String nameScore[] = line.split(":"); 
+                String name = nameScore[0]; 
+                String score = nameScore[1];
+                Pair<String, Integer> scorePair = new Pair<>(name, Integer.parseInt(score));
+                highScores.add(scorePair);
+            }
+        }
+
+        sortScores(highScores);
+
+        return highScores.get(0).getValue();
+    
+    }
+
+    public void sortScores(ArrayList<Pair<String,Integer>> scoreList) {
+        scoreList.sort(new Comparator<Pair<String, Integer>>() {
+            @Override
+            public int compare(Pair<String, Integer> o1, Pair<String, Integer> o2) {
+                if (o1.getValue() > o2.getValue()) {
+                    return -1;
+                }
+                else if (o1.getValue().equals(o2.getValue())) {
+                    return 0; 
+                }
+                else {
+                    return 1;
+                }
+            }
+        });
+    }
+
     public void gameLoop() {
 
-        if(getLives() == 3) {
+        if(getLives() == 0) {
             Multimedia.stopBackgroundMusic();
             Multimedia.playSounds("explode.wav");
             timer.cancel();
@@ -117,12 +166,16 @@ public class Game {
         nextPiece();
     }
 
-    TimerTask task = new TimerTask(){
-        @Override
-        public void run() {
-            gameLoop();
-        }
-    };
+    public void startTimer() {
+        timer.cancel();
+        timer = new Timer();
+        TimerTask task = new TimerTask(){
+            public void run() {
+                gameLoop();
+            }
+        };
+        timer.scheduleAtFixedRate(task, getTimerDelay(), getTimerDelay());
+    }
 
     public void rotateCurrentPiece() {
         logger.info("Piece: {} rotated.", currentPiece.getValue());
@@ -140,6 +193,28 @@ public class Game {
 
         currentPiece.rotateLeft();
         receive2(currentPiece); 
+    }
+
+    //Listener for tracking timer delay change
+    public void setOnDelayChange(delayChangeListener listener) {
+        this.listenerDelayChange.add(listener);
+    }
+
+    public void receiveDelay(int delay) {
+        for(delayChangeListener listener : listenerDelayChange) {
+            listener.delayChange(delay);
+        }
+    }
+
+    //Listener for updating current high score
+    public void setOnHighScore(highScoreListener listener) {
+        this.listenerHighScore.add(listener);
+    }
+
+    private void receiveHighScore() {
+        for(highScoreListener listener : listenerHighScore) {
+            listener.highScoreUpdate();
+        }
     }
 
     //Listener for end of game
@@ -179,8 +254,21 @@ public class Game {
         }
     }
 
+    public void updateLevel() {
+        int lvlRound = (int) Math.floor((((double)getScore()/1000)*1000)/1000);
+        setLevel(lvlRound);
+        sound.playSounds("level.wav");
+    }
+
     public void score(int numOfBlocks, int numOfLines) {
-        //number of lines * number of grid blocks cleared * 10 * the current multiplier
+
+        try {
+            if(getScore() > getHighScore()) {
+                receiveHighScore(); //inform listener
+            }
+        } catch (NumberFormatException | IOException e) {
+            e.printStackTrace();
+        }
 
         int scoreUpdate = numOfLines*numOfBlocks*10*getMultipliyer();
 
@@ -189,9 +277,7 @@ public class Game {
         }
         else {
             setScore(scoreUpdate);
-            int lvlRound = (int) Math.floor((((double)getScore()/1000)*1000)/1000);
-            sound.playSounds("level.wav");
-            setLevel(lvlRound);
+            updateLevel();
         }
 
     }
@@ -239,14 +325,12 @@ public class Game {
      * Initialise a new game and set up anything that needs to be done at the start
      */
     public void initialiseGame() {
-        //Start the timer
-        timer = new Timer();
-        timer.scheduleAtFixedRate(task, getTimerDelay(), getTimerDelay());
+        startTimer();
 
         currentPiece = spawnPiece();
         followingPiece = spawnPiece();
         receive2(currentPiece);
-        
+
         logger.info("Initialising game");
     }
 
@@ -255,25 +339,15 @@ public class Game {
      * @param gameBlock the block that was clicked
      */
     public void blockClicked(GameBlock gameBlock) {
-        sound.playSounds("place.wav");
-
         //Get the position of this block
         int x = gameBlock.getX();
         int y = gameBlock.getY();
 
         if(grid.canPlayPiece(currentPiece, x, y) == true) {
             temp = true;
-            //Reset timer
-            logger.info("Timer reset!");
-            timer.cancel();
-            timer = new Timer();
-            TimerTask task = new TimerTask(){
-                public void run() {
-                    gameLoop();
-                }
-            };
-            timer.scheduleAtFixedRate(task, getTimerDelay(), getTimerDelay());
-            System.out.println("Game: "+getTimerDelay());
+            startTimer();
+        
+            sound.playSounds("place.wav");
 
             //Update piece on grid
             grid.playPiece(currentPiece, x, y);
@@ -353,20 +427,14 @@ public class Game {
         //Place block when usser presses enter at currentX, currentY location
         if(grid.canPlayPiece(currentPiece, currentX, currentY) == true) {
             temp = true;
-            //Reset timer
-            logger.info("Timer reset!");
-            timer.cancel();
-            timer = new Timer();
-            TimerTask task = new TimerTask(){
-                public void run() {
-                    gameLoop();
-                }
-            };
-            timer.scheduleAtFixedRate(task, getTimerDelay(), getTimerDelay());
+            startTimer();
 
             grid.playPiece(currentPiece, currentX, currentY);
             grid.afterPiece(this); //Check if lines need to be cleared
             nextPiece();
+        }
+        else {
+            temp = false;
         }
     }
 

@@ -197,7 +197,7 @@ public class Grid {
             gm.setMultipliyer(1);
         }
         else if(x.isEmpty()) {
-            gm.resetMultipliyer(1);
+            gm.resetMultipliyer(0);
         }
 
         int numOfLines = x.size()/5;
@@ -214,5 +214,7 @@ public class Grid {
 
         x.removeAll(x);
         y.removeAll(y);
+
+        //gm.updateLevel();
     }
 }

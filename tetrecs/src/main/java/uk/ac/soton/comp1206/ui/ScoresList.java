@@ -2,6 +2,7 @@ package uk.ac.soton.comp1206.ui;
 
 import java.util.ArrayList;
 
+import javafx.animation.FadeTransition;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.SimpleListProperty;
 import javafx.beans.property.StringProperty;
@@ -12,6 +13,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
+import javafx.util.Duration;
 import javafx.util.Pair;
 
 public class ScoresList extends VBox {
@@ -57,7 +59,18 @@ public class ScoresList extends VBox {
             scoreBox.getChildren().addAll(name, points);
 
             getChildren().add(scoreBox);
+
+            reveal();
         }
+    }
+
+    //Animate score reveal
+    public void reveal() {
+            FadeTransition fade = new FadeTransition(Duration.millis(3000), this);
+            fade.setFromValue(0);
+            fade.setToValue(1);
+            fade.setCycleCount(1);
+            fade.play();
     }
 
     public ListProperty<Pair<String, Integer>> scoreProperty() {

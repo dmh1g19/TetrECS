@@ -14,10 +14,12 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Observable;
 import java.util.Optional;
+import javafx.util.Duration;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import javafx.animation.FadeTransition;
 import javafx.application.Platform;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.SimpleListProperty;
@@ -35,6 +37,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.Text;
 import javafx.util.Pair;
 import uk.ac.soton.comp1206.event.Multimedia;
 import uk.ac.soton.comp1206.game.Game;
@@ -174,17 +177,16 @@ public class ScoresScene extends BaseScene {
 
         //main scores container
         var scores = new VBox();
-        scores.setPadding(new Insets(4, 4, 4, 4));
-        scores.setAlignment(Pos.BOTTOM_CENTER);
-        scores.getStyleClass().add("scores");
+        scores.setPadding(new Insets(150));
+        scores.setSpacing(50);
+        scores.setAlignment(Pos.CENTER);
 
-        var scoreLabel = new Label("High Scores");
+        var scoreLabel = new Text("High Scores");
         scoreLabel.getStyleClass().add("heading");
-        scores.getChildren().add(scoreLabel);
-        scores.getChildren().add(scoreBox);
-
         scoreBox.scoreProperty().bind(scoreProperty);
-        mainPane.setCenter(scoreBox);
+        scores.getChildren().addAll(scoreLabel, scoreBox);
+
+        mainPane.setCenter(scores);
 
         menuPane.getChildren().addAll(mainPane);
     }
