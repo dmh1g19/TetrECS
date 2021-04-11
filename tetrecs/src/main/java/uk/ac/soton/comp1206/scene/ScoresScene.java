@@ -115,7 +115,7 @@ public class ScoresScene extends BaseScene {
             game = new Game(5, 5);
             loadScores();
             for(Pair<String, Integer> currentEntry : scoreProperty) {
-                if(game.getScore() > currentEntry.getValue()) {
+                if(game.getScore() > currentEntry.getValue() || game.getHighScore() == 0) {
                     FileWriter fr = new FileWriter(newFile, true);
                     fr.write("\n"+enterName()+":"+game.getScore());
                     fr.close();

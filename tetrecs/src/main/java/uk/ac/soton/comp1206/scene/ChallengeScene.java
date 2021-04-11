@@ -61,7 +61,7 @@ public class ChallengeScene extends BaseScene {
     public ChallengeScene(GameWindow gameWindow) {
         super(gameWindow);
         logger.info("Creating Challenge Scene");
-        //Multimedia.playBackgroundMusic("game.wav");
+        Multimedia.playBackgroundMusic("game.wav");
     }
 
     /**
@@ -184,7 +184,6 @@ public class ChallengeScene extends BaseScene {
 
             });
         });
-
 
         //Handle block on gameboard grid being clicked
         board.setOnBlockClick(this::blockClicked);
@@ -324,6 +323,9 @@ public class ChallengeScene extends BaseScene {
             }
             if (e.getCode() == KeyCode.ESCAPE) {
                 Multimedia.stopBackgroundMusic();
+                game.timer.cancel();
+                timeline.stop();
+                bar.setWidth(gameWindow.getWidth());
                 gameWindow.startMenu();
             }
             if (e.getCode() == KeyCode.SPACE

@@ -14,7 +14,9 @@ import uk.ac.soton.comp1206.scene.ChallengeScene;
 import uk.ac.soton.comp1206.ui.GameWindow;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -111,29 +113,45 @@ public class Game {
         return delay;
     }
 
-    Timer timer = new Timer();
+    public Timer timer = new Timer();
 
     public int getHighScore() throws NumberFormatException, IOException {
-        String fileName = Multimedia.getScore("scores.txt");
-        FileReader fileReader = new FileReader(fileName.substring(5));
+        String getFolder = Multimedia.getScoreFolder();
+        File newFile = new File((getFolder+"scores.txt").substring(5));
 
         ArrayList<Pair<String, Integer>> highScores = new ArrayList<>();
 
-        try (BufferedReader bufferedReader = new BufferedReader(fileReader)) {
-            String line;
-            while((line=bufferedReader.readLine()) != null) {
-                String nameScore[] = line.split(":"); 
-                String name = nameScore[0]; 
-                String score = nameScore[1];
-                Pair<String, Integer> scorePair = new Pair<>(name, Integer.parseInt(score));
-                highScores.add(scorePair);
+        FileReader fileReader = new FileReader(newFile);
+        if(newFile.exists()) {
+            try (BufferedReader bufferedReader = new BufferedReader(fileReader)) {
+                String line;
+                while((line=bufferedReader.readLine()) != null) {
+                    String nameScore[] = line.split(":"); 
+                    String name = nameScore[0]; 
+                    String score = nameScore[1];
+                    Pair<String, Integer> scorePair = new Pair<>(name, Integer.parseInt(score));
+                    highScores.add(scorePair);
+                }
+            }
+
+            sortScores(highScores);
+
+            return highScores.get(0).getValue();
+        }
+        else {
+            //if file doesn exist, create one and write some default scores
+            newFile.createNewFile();
+
+            try {
+                FileWriter fr = new FileWriter(newFile);
+                fr.write("Jhon:30\nSarah:20\nTim:40");
+                fr.close();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
 
-        sortScores(highScores);
-
-        return highScores.get(0).getValue();
-    
+        return 0;
     }
 
     public void sortScores(ArrayList<Pair<String,Integer>> scoreList) {
