@@ -5,6 +5,7 @@ import org.apache.logging.log4j.Logger;
 import uk.ac.soton.comp1206.component.GameBlock;
 import uk.ac.soton.comp1206.event.Multimedia;
 import uk.ac.soton.comp1206.event.NextPieceListener;
+import uk.ac.soton.comp1206.event.clearBlocksListener;
 import uk.ac.soton.comp1206.event.delayChangeListener;
 import uk.ac.soton.comp1206.event.gameOverListener;
 import uk.ac.soton.comp1206.event.highScoreListener;
@@ -40,6 +41,7 @@ public class Game {
     private List<gameOverListener> listenerGameover = new ArrayList<gameOverListener>();
     private List<highScoreListener> listenerHighScore = new ArrayList<highScoreListener>();
     private List<delayChangeListener> listenerDelayChange = new ArrayList<delayChangeListener>();
+    private List<clearBlocksListener> listenerBlocksCleared = new ArrayList<clearBlocksListener>();
 
     private static final Logger logger = LogManager.getLogger(Game.class);
 
@@ -193,6 +195,15 @@ public class Game {
 
         currentPiece.rotateLeft();
         receive2(currentPiece); 
+    }
+
+    public void setOnClear(clearBlocksListener listener) {
+        this.listenerBlocksCleared.add(listener);
+    }
+    public void receiveClearedBlocks(Pair<Integer, Integer> cor) {
+        for(clearBlocksListener listener : listenerBlocksCleared) {
+            listener.blocksCleared(cor);
+        }
     }
 
     //Listener for tracking timer delay change

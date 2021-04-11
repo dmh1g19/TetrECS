@@ -22,6 +22,7 @@
 /home/test/Desktop/coursework/tetrecs/src/main/java/uk/ac/soton/comp1206/Launcher.java
 /home/test/Desktop/coursework/tetrecs/src/main/java/uk/ac/soton/comp1206/event/Multimedia.java
 /home/test/Desktop/coursework/tetrecs/src/main/java/uk/ac/soton/comp1206/event/highScoreListener.java
+/home/test/Desktop/coursework/tetrecs/src/main/java/uk/ac/soton/comp1206/event/clearBlocksListener.java
 /home/test/Desktop/coursework/tetrecs/src/main/java/uk/ac/soton/comp1206/component/GameBlock.java
 /home/test/Desktop/coursework/tetrecs/src/main/java/uk/ac/soton/comp1206/component/GameBoard.java
 /home/test/Desktop/coursework/tetrecs/src/main/java/uk/ac/soton/comp1206/ui/GamePane.java

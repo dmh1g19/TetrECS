@@ -31,7 +31,6 @@ public class PieceBoard extends GameBoard {
                 }
             } 
         }
-        grid.set(1,1,1);
     }
 
     public void clearGrid() {

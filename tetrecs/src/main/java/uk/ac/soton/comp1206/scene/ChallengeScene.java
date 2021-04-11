@@ -1,5 +1,6 @@
 package uk.ac.soton.comp1206.scene;
 
+import javafx.animation.FadeTransition;
 import javafx.animation.FillTransition;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
@@ -163,6 +164,27 @@ public class ChallengeScene extends BaseScene {
 
         var board = new GameBoard(game.getGrid(),gameWindow.getWidth()/2,gameWindow.getWidth()/2);
         mainPane.setCenter(board);
+
+        //Trigger animation when lines are cleared
+        game.setOnClear((cor) -> {
+            Platform.runLater(() -> {
+                FadeTransition fr = new FadeTransition(Duration.millis(1500), board.getBlock(cor.getKey(), cor.getValue()));
+                fr.setFromValue(1);
+                fr.setToValue(0);
+                fr.setCycleCount(1);
+                fr.setOnFinished((e) -> {
+                    board.setBlockToZero(cor.getKey(), cor.getValue());
+                    FadeTransition fr2 = new FadeTransition(Duration.millis(1), board.getBlock(cor.getKey(), cor.getValue()));
+                    fr2.setFromValue(0);
+                    fr2.setToValue(1);
+                    fr2.play();
+
+                });
+                fr.play();
+
+            });
+        });
+
 
         //Handle block on gameboard grid being clicked
         board.setOnBlockClick(this::blockClicked);

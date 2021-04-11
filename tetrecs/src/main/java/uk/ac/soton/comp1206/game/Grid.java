@@ -1,7 +1,11 @@
 package uk.ac.soton.comp1206.game;
 
+import javafx.animation.FadeTransition;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
+import javafx.util.Duration;
+import javafx.util.Pair;
+import uk.ac.soton.comp1206.component.GameBoard;
 import uk.ac.soton.comp1206.event.Multimedia;
 
 import java.util.ArrayList;
@@ -188,11 +192,6 @@ public class Grid {
             }
         }
 
-        //Change lines to empty on the grid
-        for(int i=0;i<x.size();i++) {
-            set(x.get(i),y.get(i),0);
-        }
-
         if(!(x.isEmpty())) {
             gm.setMultipliyer(1);
         }
@@ -212,9 +211,12 @@ public class Grid {
         logger.info("Current multipliyer:{}", gm.getMultipliyer());
         logger.info("Current score:{}", gm.getScore());
 
+        for(int i=0;i<x.size();i++) {
+            Pair<Integer, Integer> cor = new Pair<>(x.get(i), y.get(i));
+            gm.receiveClearedBlocks(cor);
+        }
+
         x.removeAll(x);
         y.removeAll(y);
-
-        //gm.updateLevel();
     }
 }

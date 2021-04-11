@@ -1,10 +1,14 @@
 package uk.ac.soton.comp1206.component;
 
+import javafx.animation.FadeTransition;
+import javafx.animation.FillTransition;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.paint.Color;
+import javafx.util.Duration;
+import java.util.ArrayList;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -109,6 +113,10 @@ public class GameBoard extends GridPane {
         return blocks[x][y];
     }
 
+    public GameBlock[][] getBlocks() {
+        return blocks;
+    }
+
     /**
      * Build the GameBoard by creating a block at every x and y column and row
      */
@@ -127,6 +135,14 @@ public class GameBoard extends GridPane {
                 createBlock(x,y);
             }
         }
+
+       // FadeTransition fr = new FadeTransition(Duration.millis(2500), getBlock(1, 1));
+       // fr.setFromValue(1);
+       // fr.setToValue(0);
+       // fr.setFromValue(0);
+       // fr.setToValue(1);
+       // fr.setCycleCount(1);
+       // fr.play();
     }
 
     /**
@@ -186,4 +202,7 @@ public class GameBoard extends GridPane {
         }
     }
 
+    public void setBlockToZero(int x, int y) {
+        grid.set(x, y, 0);
+    }
 }

@@ -1,5 +1,7 @@
 package uk.ac.soton.comp1206.component;
 
+import javafx.animation.AnimationTimer;
+import javafx.animation.FadeTransition;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.value.ObservableValue;
@@ -8,6 +10,7 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.paint.*;
+import javafx.util.Duration;
 import uk.ac.soton.comp1206.game.Game;
 
 import org.apache.logging.log4j.LogManager;
@@ -115,7 +118,11 @@ public class GameBlock extends Canvas {
         //If the block is empty, paint as empty
         if(value.get() == 0) {
             paintEmpty();
-        } else {
+        }
+        else if(getX() == 1 && getY() == 1 && gameBoard.getBlocks().length == 3) {
+            paintCenterPiece(COLOURS[value.get()]);
+        }
+        else {
             //If the block is not empty, paint with the colour represented by the value
             paintColor(COLOURS[value.get()]);
         }
@@ -182,14 +189,57 @@ public class GameBlock extends Canvas {
         gc.setFill(lg);
         gc.fillRect(0,0, width, height);
 
-        //LinearGradient lg2 = new LinearGradient(1, 1, 3, 5, true, CycleMethod.REPEAT, stops);
-        //gc.setFill(lg2);
-        //gc.fillOval(0, 0, width-20, height-20);
+        //Border
+        gc.setStroke(Color.BLACK);
+        gc.strokeRect(0,0,width,height);
+
+        int triangleCor = 100;
+        gc.setFill(Color.rgb(0, 0, 0, 0.2));
+        gc.fillPolygon(new double[]{0, triangleCor, triangleCor}, new double[]{0, triangleCor, 0}, 3);
+
+        gc.setFill(Color.rgb(0, 0, 0, 0.4));
+        gc.fillRect(1, 0, width-2, height-2);
+    }
+
+    private void paintCenterPiece(Paint colour) {
+        var gc = getGraphicsContext2D();
+
+        //Clear
+        gc.clearRect(0,0,width,height);
+
+        //Colour fill
+        Stop[] stops = new Stop[] { new Stop(0,((Color) colour)), new Stop(1, Color.WHITE)};
+        LinearGradient lg = new LinearGradient(1, 1, 2, 0, true, CycleMethod.REFLECT, stops);
+
+        gc.setFill(lg);
+        gc.fillRect(0,0, width, height);
+
+        gc.setFill(Color.rgb(0, 0, 0, 0.5));
+        gc.fillOval(10, 10, width-20, height-20);
 
         //Border
         gc.setStroke(Color.BLACK);
         gc.strokeRect(0,0,width,height);
+
+        int triangleCor = 100;
+        gc.setFill(Color.rgb(0, 0, 0, 0.2));
+        gc.fillPolygon(new double[]{0, triangleCor, triangleCor}, new double[]{0, triangleCor, 0}, 3);
+
+        gc.setFill(Color.rgb(0, 0, 0, 0.4));
+        gc.fillRect(1, 0, width-2, height-2);
+
     }
+
+//    public void flashGreen() {
+//        AnimationTimer timer = new AnimationTimer(){
+//            @Override
+//            public void handle(long now) {
+//                gc.setFill(Color.GREEN);
+//            }
+//        };
+//
+//        timer.start();
+//    }
 
     /**
      * Get the column of this block
