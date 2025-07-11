@@ -1,0 +1,16 @@
+target/
+.settings/
+.classpath
+.project
+.vscode/
+.idea/
+*.iml
+*.log
+*.tmp
+*.swp
+*.bak
+*.orig
+.DS_Store
+*.jar
+node_modules/
+.factorypath
