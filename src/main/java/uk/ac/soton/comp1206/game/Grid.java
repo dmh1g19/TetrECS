@@ -29,6 +29,8 @@ public class Grid {
 
     private static final Logger logger = LogManager.getLogger(Grid.class);
 
+    Multimedia sound = new Multimedia();
+
     /**
      * The number of columns in this grid
      */
@@ -134,7 +136,7 @@ public class Grid {
                 if ((piece.getBlocks()[j][i] > 0 && get((x + j) - 1, (y + i) - 1) > 0)
                         && get((x + j) - 1, (y + i) - 1) != 16) {
                     logger.info("BLOCK OCCUPIED! Pick an available slot.");
-                    Multimedia.playSounds("fail.wav");
+                    sound.playSounds("fail.wav");
 
                     return false;
                 }
@@ -157,7 +159,7 @@ public class Grid {
                 }
             }
         }
-        Multimedia.playSounds("place.wav");
+        sound.playSounds("place.wav");
     }
 
     public void afterPiece(Game gm) {
@@ -175,7 +177,7 @@ public class Grid {
             }
             if (isFull) {
                 fullRows.add(row);
-                Multimedia.playSounds("clear.wav");
+                sound.playSounds("clear.wav");
             }
         }
 
@@ -190,7 +192,7 @@ public class Grid {
             }
             if (isFull) {
                 fullCols.add(col);
-                Multimedia.playSounds("clear.wav");
+                sound.playSounds("clear.wav");
             }
         }
 

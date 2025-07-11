@@ -1,20 +1,11 @@
 package uk.ac.soton.comp1206.component;
 
-import javafx.animation.AnimationTimer;
-import javafx.animation.FadeTransition;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
 import javafx.scene.paint.*;
-import javafx.util.Duration;
-import uk.ac.soton.comp1206.game.Game;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 /**
  * The Visual User Interface component representing a single block in the grid.
@@ -27,7 +18,6 @@ import org.apache.logging.log4j.Logger;
  */
 public class GameBlock extends Canvas {
 
-    private static final Logger logger = LogManager.getLogger(GameBlock.class);
     GraphicsContext gc = getGraphicsContext2D();
 
     /**

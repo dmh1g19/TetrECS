@@ -1,20 +1,13 @@
 package uk.ac.soton.comp1206.component;
 
-import javafx.animation.FadeTransition;
-import javafx.animation.FillTransition;
-import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
-import javafx.scene.paint.Color;
-import javafx.util.Duration;
-import java.util.ArrayList;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import uk.ac.soton.comp1206.event.BlockClickedListener;
 import uk.ac.soton.comp1206.game.Grid;
-import uk.ac.soton.comp1206.scene.ChallengeScene;
 
 /**
  * A GameBoard is a visual component to represent the visual GameBoard.

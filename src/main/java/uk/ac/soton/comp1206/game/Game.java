@@ -208,7 +208,7 @@ public class Game {
 
         if (getLives() == 0) {
             Multimedia.stopBackgroundMusic();
-            Multimedia.playSounds("explode.wav");
+            sound.playSounds("explode.wav");
             timer.cancel();
             receiveGameover();
         }

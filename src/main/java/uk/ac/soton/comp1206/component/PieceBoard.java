@@ -1,7 +1,6 @@
 package uk.ac.soton.comp1206.component;
 
 import uk.ac.soton.comp1206.game.GamePiece;
-import uk.ac.soton.comp1206.game.Grid;
 
 public class PieceBoard extends GameBoard {
 

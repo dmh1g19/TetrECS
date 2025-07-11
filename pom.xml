@@ -129,7 +129,7 @@
                 <artifactId>javafx-maven-plugin</artifactId>
                 <version>0.0.5</version>
                 <configuration>
-                    <mainClass>uk.ac.soton.comp1206/uk.ac.soton.comp1206.App</mainClass>
+                    <mainClass>uk.ac.soton.comp1206.App</mainClass>
                     <jvmArgs>
                         --enable-native-access=javafx.media,javafx.graphics
                     </jvmArgs>

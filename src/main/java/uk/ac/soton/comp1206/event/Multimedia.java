@@ -1,7 +1,5 @@
 package uk.ac.soton.comp1206.event;
 
-import java.io.File;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -43,7 +41,7 @@ public class Multimedia {
         return scoreFolder;
     }
 
-    public static void playSounds(String file) {
+    public void playSounds(String file) {
         String toPlay = Multimedia.class.getResource("/" + soundFolder + file).toExternalForm();
         if (toPlay == null) {
             logger.error("Audio resource not found: /" + musicFolder + file);
