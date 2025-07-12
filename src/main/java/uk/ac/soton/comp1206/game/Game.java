@@ -1,16 +1,5 @@
 package uk.ac.soton.comp1206.game;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import uk.ac.soton.comp1206.component.GameBlock;
-import uk.ac.soton.comp1206.event.Multimedia;
-import uk.ac.soton.comp1206.event.NextPieceListener;
-import uk.ac.soton.comp1206.event.clearBlocksListener;
-import uk.ac.soton.comp1206.event.delayChangeListener;
-import uk.ac.soton.comp1206.event.gameOverListener;
-import uk.ac.soton.comp1206.event.highScoreListener;
-import uk.ac.soton.comp1206.event.rotatePieceListener;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -23,10 +12,21 @@ import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.util.Pair;
+import uk.ac.soton.comp1206.component.GameBlock;
+import uk.ac.soton.comp1206.event.Multimedia;
+import uk.ac.soton.comp1206.event.NextPieceListener;
+import uk.ac.soton.comp1206.event.clearBlocksListener;
+import uk.ac.soton.comp1206.event.delayChangeListener;
+import uk.ac.soton.comp1206.event.gameOverListener;
+import uk.ac.soton.comp1206.event.highScoreListener;
+import uk.ac.soton.comp1206.event.rotatePieceListener;
 
 /**
  * The Game class handles the main logic, state and properties of the TetrECS
@@ -178,8 +178,7 @@ public class Game {
 
             try {
                 FileWriter fr = new FileWriter(newFile);
-                fr.write("Jhon:30\nSarah:20\nTim:40"); // TODO: Test this, i dont think its creating a new file if
-                                                       // doesnt exist
+                fr.write("Jhon:30\nSarah:20\nTim:40"); // TODO: Test this, i dont think its creating it
                 fr.close();
             } catch (IOException e) {
                 e.printStackTrace();
@@ -433,60 +432,57 @@ public class Game {
         return currentY;
     }
 
-    public void keyboardControlsD() {
-        if (currentX <= getCols() - 2) {
-            currentX++;
-            if (grid.get(currentX, currentY) <= 0) {
-                grid.set(currentX, currentY, 16);
-            }
-        }
-        for (int i = 0; i < currentX; i++) {
-            if (grid.get(i, currentY) == 16) {
-                grid.set(i, currentY, 0);
-            }
-        }
-    }
+    public void move(int dx, int dy) {
+        int newX = currentX + dx;
+        int newY = currentY + dy;
 
-    public void keyboardControlsS() {
-        if (currentY <= getRows() - 2) {
-            currentY++;
-            if (grid.get(currentX, currentY) <= 0) {
-                grid.set(currentX, currentY, 16);
-            }
-        }
-        for (int i = 0; i < currentY; i++) {
-            if (grid.get(currentX, i) == 16) {
-                grid.set(currentX, i, 0);
-            }
-        }
-    }
+        if (newX >= 0 && newX < getCols() && newY >= 0 && newY < getRows()) {
+            currentX = newX;
+            currentY = newY;
 
-    public void keyboardControlsA() {
-        if (currentX > 0) {
-            currentX--;
             if (grid.get(currentX, currentY) <= 0) {
                 grid.set(currentX, currentY, 16);
             }
-        }
-        for (int i = getCols() - 1; i > currentX; i--) {
-            if (grid.get(i, currentY) == 16) {
-                grid.set(i, currentY, 0);
+
+            // Clear stale 16s in the movement direction
+            if (dx != 0) {
+                int start = (dx > 0) ? 0 : getCols() - 1;
+                int end = currentX;
+                int step = (dx > 0) ? 1 : -1;
+
+                for (int i = start; i != end; i += step) {
+                    if (grid.get(i, currentY) == 16) {
+                        grid.set(i, currentY, 0);
+                    }
+                }
+            } else if (dy != 0) {
+                int start = (dy > 0) ? 0 : getRows() - 1;
+                int end = currentY;
+                int step = (dy > 0) ? 1 : -1;
+
+                for (int i = start; i != end; i += step) {
+                    if (grid.get(currentX, i) == 16) {
+                        grid.set(currentX, i, 0);
+                    }
+                }
             }
         }
     }
 
     public void keyboardControlsW() {
-        if (currentY > 0) {
-            currentY--;
-            if (grid.get(currentX, currentY) <= 0) {
-                grid.set(currentX, currentY, 16);
-            }
-        }
-        for (int i = getRows() - 1; i > currentY; i--) {
-            if (grid.get(currentX, i) == 16) {
-                grid.set(currentX, i, 0);
-            }
-        }
+        move(0, -1);
+    }
+
+    public void keyboardControlsA() {
+        move(-1, 0);
+    }
+
+    public void keyboardControlsS() {
+        move(0, 1);
+    }
+
+    public void keyboardControlsD() {
+        move(1, 0);
     }
 
     public void keyboardControlsEnter() {
@@ -498,6 +494,8 @@ public class Game {
             grid.afterPiece(this); // Check if lines need to be cleared
             nextPiece();
         } else {
+            logger.info("BLOCK OCCUPIED! Pick an available slot.");
+            sound.playSounds("fail.wav");
             temp = false;
         }
     }

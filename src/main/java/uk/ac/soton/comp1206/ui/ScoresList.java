@@ -1,11 +1,8 @@
 package uk.ac.soton.comp1206.ui;
 
-import java.util.ArrayList;
-
 import javafx.animation.FadeTransition;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.SimpleListProperty;
-import javafx.beans.property.StringProperty;
 import javafx.collections.ListChangeListener;
 import javafx.geometry.Pos;
 import javafx.scene.layout.HBox;

@@ -4,8 +4,6 @@ import javafx.geometry.Pos;
 import javafx.scene.layout.*;
 import javafx.scene.transform.Scale;
 import javafx.scene.transform.Translate;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 /**
  * The Game Pane is a special pane which will scale anything inside it to the screen and maintain the aspect ratio.
@@ -20,8 +18,6 @@ import org.apache.logging.log4j.Logger;
  * You should not need to modify this class
  */
 public class GamePane extends StackPane {
-
-    private static final Logger logger = LogManager.getLogger(GamePane.class);
 
     private final int width;
     private final int height;

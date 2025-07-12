@@ -2,17 +2,11 @@ package uk.ac.soton.comp1206.scene;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Scene;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
-import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
@@ -106,8 +100,8 @@ public class InstructionsScene extends BaseScene {
         vb.getChildren().addAll(gridLabel, hbox, hbox2, hbox3);
 
         menuPane.getChildren().addAll(mv, vb);
-        menuPane.setAlignment(mv, Pos.TOP_CENTER);
-        menuPane.setAlignment(vb, Pos.BOTTOM_CENTER);
+        StackPane.setAlignment(mv, Pos.TOP_CENTER);
+        StackPane.setAlignment(vb, Pos.BOTTOM_CENTER);
 
         root.getChildren().add(menuPane);
     }

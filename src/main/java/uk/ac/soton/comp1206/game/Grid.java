@@ -126,18 +126,29 @@ public class Grid {
         return rows;
     }
 
-    // Check if location is valid for placement
-    // TODO: doesnt wuite work fully
     public boolean canPlayPiece(GamePiece piece, int x, int y) {
+        int[][] blocks = piece.getBlocks();
 
-        for (int i = 0; i < piece.getBlocks().length; i++) {
-            for (int j = 0; j < piece.getBlocks()[i].length; j++) {
+        for (int i = 0; i < blocks.length; i++) {
+            for (int j = 0; j < blocks[i].length; j++) {
+                int gridX = (x + j) - 1;
+                int gridY = (y + i) - 1;
 
-                if ((piece.getBlocks()[j][i] > 0 && get((x + j) - 1, (y + i) - 1) > 0)
-                        && get((x + j) - 1, (y + i) - 1) != 16) {
+                // Skip if this block isn't part of the piece
+                if (blocks[j][i] <= 0)
+                    continue;
+
+                // Check bounds before access
+                if (gridX < 0 || gridX >= getCols() || gridY < 0 || gridY >= getRows()) {
+                    logger.info("OUT OF BOUNDS at {}, {}", gridX, gridY);
+                    sound.playSounds("fail.wav");
+                    return false;
+                }
+
+                int value = get(gridX, gridY);
+                if (value > 0 && value != 16) {
                     logger.info("BLOCK OCCUPIED! Pick an available slot.");
                     sound.playSounds("fail.wav");
-
                     return false;
                 }
             }
