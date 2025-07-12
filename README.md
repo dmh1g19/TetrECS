@@ -1,6 +1,6 @@
 # TetrECS - A JavaFX Grid-Based Puzzle Game
 
-![Gameplay demo](test.mp4)
+![Gameplay demo](output.gif)
 
 **TetrECS** is a JavaFX-based tile placement game inspired by *Tetris*. Unlike traditional Tetris, players can freely place incoming game pieces onto a fixed-size grid using keyboard controls. Strategically arrange blocks to clear lines, maximize scores, and test your planning under pressure.
 
